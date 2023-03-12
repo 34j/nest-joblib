@@ -1,0 +1,22 @@
+# Changes here will be overwritten by Copier
+_commit: 68ee8bf
+_src_path: gh:34j/pypackage-template-fork
+add_me_as_contributor: true
+copyright_year: '2023'
+documentation: true
+email: 34j.95a2p@simplelogin.com
+full_name: 34j
+github_username: 34j
+initial_commit: true
+open_source_license: MIT
+open_with_vscode: true
+package_name: nest_joblib
+project_name: nest-joblib
+project_short_description: Patch joblib to allow nested parallelism
+project_slug: nest-joblib
+run_poetry_install: true
+setup_github: true
+setup_pre_commit: true
+setup_venv: true
+venv_version: '3.10'
+
