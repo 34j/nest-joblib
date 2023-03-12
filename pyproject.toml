@@ -42,8 +42,8 @@ sphinx-rtd-theme = ">=1.0"
 
 
 [tool.poetry.group.all.dependencies]
-ray = ">=2"
-dask = "^2023.3.1"
+ray = "*"
+dask = {extras = ["distributed"], version = "*"}
 
 [tool.semantic_release]
 branch = "main"
@@ -70,6 +70,9 @@ exclude_lines = [
 [tool.isort]
 profile = "black"
 known_first_party = ["nest_joblib", "tests"]
+
+[tool.autoflake]
+remove_all_unused_imports = true
 
 [tool.mypy]
 check_untyped_defs = true
