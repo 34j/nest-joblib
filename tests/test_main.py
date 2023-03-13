@@ -18,8 +18,29 @@ def _nested(level: int, max_level: int) -> list[str]:
         return [backend.__class__.__name__]
 
 
+class TestMainNoAutoRegister(TestCase):
+    def setUp(self) -> None:
+        apply(auto_register=False)
+
+    def test_nested_ray(self):
+        from ray.util.joblib import register_ray
+
+        register_ray()
+        with self.assertRaises(ValueError):
+            with parallel_backend("nested-ray"):
+                pass
+
+
 class TestMain(TestCase):
+    def setUp(self) -> None:
+        apply(set_default=False)
+
     def test_nested_loky(self):
+        result = _nested(0, 3)
+        for backend in result:
+            self.assertEqual(backend, "NestedLokyBackend")
+
+    def test_nested_loky_default(self):
         apply(set_default=True)
         result = _nested(0, 3)
         for backend in result:
@@ -29,7 +50,6 @@ class TestMain(TestCase):
         from ray.util.joblib import register_ray
 
         register_ray()
-        apply()
         with parallel_backend("nested-ray"):
             result = _nested(0, 3)
         for backend in result:
@@ -38,7 +58,6 @@ class TestMain(TestCase):
     def test_nested_dask(self):
         from dask.distributed import Client
 
-        apply()
         _ = Client(processes=False)
         with parallel_backend("nested-dask"):
             result = _nested(0, 3)

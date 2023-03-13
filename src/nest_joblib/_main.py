@@ -1,21 +1,19 @@
-import functools
 import re
 import sys
 from copy import deepcopy
 from typing import Any, Type
 
+import joblib.parallel
 from joblib.parallel import (
-    BACKENDS,
-    EXTERNAL_BACKENDS,
     ParallelBackendBase,
     parallel_backend,
     register_parallel_backend,
 )
 
 if sys.version_info >= (3, 11):
-    from typing import Self
+    from typing import Self  # nocover
 else:
-    from typing_extensions import Self
+    from typing_extensions import Self  # nocover
 
 
 class NestedBackendMixin:
@@ -26,25 +24,37 @@ class NestedBackendMixin:
 def _create_nested_backend(
     backend_class: Type[ParallelBackendBase],
 ) -> Type[ParallelBackendBase]:
+    if issubclass(backend_class, NestedBackendMixin):
+        return backend_class
     return type(
         f"Nested{backend_class.__name__}", (NestedBackendMixin, backend_class), {}
     )
 
 
-def apply(set_default: bool = True) -> None:
-    for name, backend in deepcopy(BACKENDS).items():
-        if re.match("nested-", name) is None:
-            register_parallel_backend(f"nested-{name}", _create_nested_backend(backend))
-    for name, register_backend in deepcopy(EXTERNAL_BACKENDS).items():
+class _NestedBackendDict(dict[str, Type[ParallelBackendBase]]):
+    def __setitem__(self, __key: str, __value: Type[ParallelBackendBase]) -> None:
+        if isinstance(__key, str) and re.match("nested-", __key) is None:
+            super().__setitem__(f"nested-{__key}", _create_nested_backend(__value))
+        return super().__setitem__(__key, __value)
 
-        @functools.wraps(register_backend)
-        def register_nested_backend(*args: Any, **kwargs: Any) -> None:
-            register_backend(*args, **kwargs)
-            register_parallel_backend(
-                f"nested-{name}", _create_nested_backend(BACKENDS[name])
-            )
 
-        EXTERNAL_BACKENDS[f"nested-{name}"] = register_nested_backend
+def apply(*, set_default: bool = True, auto_register: bool = True) -> None:
+    # BACKENDS
+    for name, backend in deepcopy(joblib.parallel.BACKENDS).items():
+        if re.match("nested-", name) is not None:
+            continue
+        register_parallel_backend(f"nested-{name}", _create_nested_backend(backend))
 
+    # change the type of BACKENDS from dict to _NestedBackendDict
+    if auto_register:
+        joblib.parallel.BACKENDS = _NestedBackendDict(joblib.parallel.BACKENDS)
+
+    # EXTERNAL_BACKENDS
+    for name, register_backend in deepcopy(joblib.parallel.EXTERNAL_BACKENDS).items():
+        if re.match("nested-", name) is not None:
+            continue
+        joblib.parallel.EXTERNAL_BACKENDS[f"nested-{name}"] = register_backend
+
+    # set DEFAULT_BACKEND to nested-loky
     if set_default:
         parallel_backend("nested-loky")
