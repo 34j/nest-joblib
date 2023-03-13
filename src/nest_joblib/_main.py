@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 import sys
 from copy import deepcopy
@@ -22,8 +24,8 @@ class NestedBackendMixin:
 
 
 def _create_nested_backend(
-    backend_class: Type[ParallelBackendBase],
-) -> Type[ParallelBackendBase]:
+    backend_class: type[ParallelBackendBase],
+) -> type[ParallelBackendBase]:
     if issubclass(backend_class, NestedBackendMixin):
         return backend_class
     return type(
@@ -32,7 +34,7 @@ def _create_nested_backend(
 
 
 class _NestedBackendDict(dict[str, Type[ParallelBackendBase]]):
-    def __setitem__(self, __key: str, __value: Type[ParallelBackendBase]) -> None:
+    def __setitem__(self, __key: str, __value: type[ParallelBackendBase]) -> None:
         if isinstance(__key, str) and re.match("nested-", __key) is None:
             super().__setitem__(f"nested-{__key}", _create_nested_backend(__value))
         return super().__setitem__(__key, __value)
