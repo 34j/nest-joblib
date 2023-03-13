@@ -24,6 +24,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
+joblib = ">=1"
+typing-extensions = ">=4"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=3"
@@ -37,6 +39,11 @@ optional = true
 myst-parser = ">=0.16"
 sphinx = ">=4.0"
 sphinx-rtd-theme = ">=1.0"
+
+
+[tool.poetry.group.all.dependencies]
+ray = "*"
+dask = {extras = ["distributed"], version = "*"}
 
 [tool.semantic_release]
 branch = "main"
@@ -63,6 +70,9 @@ exclude_lines = [
 [tool.isort]
 profile = "black"
 known_first_party = ["nest_joblib", "tests"]
+
+[tool.autoflake]
+remove_all_unused_imports = true
 
 [tool.mypy]
 check_untyped_defs = true
