@@ -30,7 +30,7 @@
   <img src="https://img.shields.io/pypi/l/nest-joblib.svg?style=flat-square" alt="License">
 </p>
 
-Patch joblib to allow nested parallelism
+Patch joblib to allow nested parallelism.
 
 ## Installation
 
@@ -38,6 +38,65 @@ Install this via pip (or your favourite package manager):
 
 ```shell
 pip install nest-joblib
+```
+
+## Usage
+
+```python
+from nest_joblib import apply
+
+apply()
+```
+
+With the above code, LokyBackend supports nested-parallelism.
+
+## Advanced Usage
+
+The following joblib specification of not doing nested-parallelism may be inefficient in an environment with sufficient memory.
+
+`joblib/_parallel_backends.py`:
+
+```python
+    def get_nested_backend(self):
+        """Backend instance to be used by nested Parallel calls.
+
+        By default a thread-based backend is used for the first level of
+        nesting. Beyond, switch to sequential backend to avoid spawning too
+        many threads on the host.
+        """
+        nesting_level = getattr(self, 'nesting_level', 0) + 1
+        if nesting_level > 1:
+            return SequentialBackend(nesting_level=nesting_level), None
+        else:
+            return ThreadingBackend(nesting_level=nesting_level), None
+```
+
+After calling `nest_joblib.apply()`, when `joblib.parallel.register_parallel_backend(name, backend)` is called, a subclass of `backend` with modified `get_nested_backend` is dynamically generated and registered with the name `f"nested-{name}"`.
+
+```python
+from joblib.parallel import parallel_backend
+from nest_joblib import apply
+from ray.util.joblib import register_ray
+
+# use LokyBackend
+apply()
+
+# use DaskDistributedBackend
+apply()
+parallel_backend("nested-dask")
+
+# use RayBackend
+apply()
+register_ray()
+parallel_backend("nested-ray")
+
+# use custom backend
+from joblib.parallel import LokyBackend
+apply()
+class MyBackend(LokyBackend):
+    pass
+register_parallel_backend("custom", MyBackend)
+parallel_backend("nested-custom")
 ```
 
 ## Contributors ✨
