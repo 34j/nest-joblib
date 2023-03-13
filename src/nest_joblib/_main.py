@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import sys
 from copy import deepcopy
-from typing import Any, Type
+from typing import Any, Dict, Type
 
 import joblib.parallel
 from joblib.parallel import (
@@ -33,7 +33,7 @@ def _create_nested_backend(
     )
 
 
-class _NestedBackendDict(dict[str, Type[ParallelBackendBase]]):
+class _NestedBackendDict(Dict[str, Type[ParallelBackendBase]]):
     def __setitem__(self, __key: str, __value: type[ParallelBackendBase]) -> None:
         if isinstance(__key, str) and re.match("nested-", __key) is None:
             super().__setitem__(f"nested-{__key}", _create_nested_backend(__value))
