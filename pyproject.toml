@@ -28,7 +28,6 @@ joblib = ">=1"
 typing-extensions = ">=4"
 
 [tool.poetry.group.dev.dependencies]
-pre-commit = ">=3"
 pytest = "^7.0"
 pytest-cov = "^3.0"
 
