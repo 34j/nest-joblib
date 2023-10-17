@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.2 (2023-10-17)
+
+### Fix
+
+* **deps:** Update dependency joblib to v1.3.2 ([#15](https://github.com/34j/nest-joblib/issues/15)) ([`253bfe2`](https://github.com/34j/nest-joblib/commit/253bfe2a89ef4fb615e2972d6c763b006b828e6c))
+
 ## v0.1.1 (2023-10-16)
 
 ### Fix
