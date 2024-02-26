@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.5 (2024-02-26)
+
+### Fix
+
+* **deps:** Update dependency typing-extensions to v4.10.0 ([#71](https://github.com/34j/nest-joblib/issues/71)) ([`7e68f79`](https://github.com/34j/nest-joblib/commit/7e68f797d6d6c3f618d91df71fe231b4cd784e84))
+
 ## v0.1.4 (2023-12-10)
 
 ### Fix
