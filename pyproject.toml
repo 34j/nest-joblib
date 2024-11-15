@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nest-joblib"
-version = "0.1.6"
+version = "0.1.7"
 description = "Patch joblib to allow nested parallelism"
 authors = ["34j <34j.95a2p@simplelogin.com>"]
 license = "MIT"
