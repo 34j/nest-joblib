@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+# The tests intentionally use optional backend imports and unittest fixtures.
+# ruff: noqa: PLC0415, PLR6301, PT009, PT027
 from unittest import TestCase
 
 from joblib import delayed
@@ -12,12 +14,11 @@ def _nested(level: int, max_level: int) -> list[str]:
     backend, n_jobs = get_active_backend()
     if level < max_level:
         parallel_result = Parallel(n_jobs=-1, verbose=1)(
-            delayed(_nested)(level + 1, max_level) for _ in range(n_jobs)
+            delayed(_nested)(level + 1, max_level) for _ in range(n_jobs or 1)
         )
         assert parallel_result is not None
         return [x for y in parallel_result for x in y] + [backend.__class__.__name__]
-    else:
-        return [backend.__class__.__name__]
+    return [backend.__class__.__name__]
 
 
 class TestMainNoAutoRegister(TestCase):
@@ -28,9 +29,8 @@ class TestMainNoAutoRegister(TestCase):
         from ray.util.joblib import register_ray
 
         register_ray()
-        with self.assertRaises(ValueError):
-            with parallel_backend("nested-ray"):
-                pass
+        with self.assertRaises(ValueError), parallel_backend("nested-ray"):
+            pass
 
 
 class TestMain(TestCase):

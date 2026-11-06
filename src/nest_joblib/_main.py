@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import re
-import sys
 from copy import deepcopy
-from typing import Any, Dict, Type
+from typing import Any, Self
 
 import joblib.parallel
 from joblib.parallel import (
@@ -12,19 +10,15 @@ from joblib.parallel import (
     register_parallel_backend,
 )
 
-if sys.version_info >= (3, 11):
-    from typing import Self  # nocover
-else:
-    from typing_extensions import Self  # nocover
-
 
 class NestedBackendMixin:
     """Mixin class for nested parallel backend.
+
     Overrides `ParallelBackendBase.get_nested_backend` method
     to return Self class.
     """
 
-    def get_nested_backend(self, *args: Any, **kwargs: Any) -> tuple[Self, None]:
+    def get_nested_backend(self, *_args: Any, **_kwargs: Any) -> tuple[Self, None]:
         """Get nested parallel backend.
 
         Returns
@@ -49,27 +43,26 @@ def _create_nested_backend(
     -------
     type[ParallelBackendBase]
         Nested parallel backend class.
+
     """
     if issubclass(backend_class, NestedBackendMixin):
         return backend_class
-    return type(
-        f"Nested{backend_class.__name__}", (NestedBackendMixin, backend_class), {}
-    )
+    return type(f"Nested{backend_class.__name__}", (NestedBackendMixin, backend_class), {})
 
 
-class _NestedBackendDict(Dict[str, Type[ParallelBackendBase]]):
-    """Dict class that dynamically creates and registers
-    nested parallel backend class with key name "nested-{key}"
-    if key name is not "nested-{key}".
+class _NestedBackendDict(dict[str, type[ParallelBackendBase]]):  # noqa: FURB189
+    """Dict class that dynamically creates and registers.
+
+    The nested parallel backend class uses the key name "nested-{key}".
     """
 
-    def __setitem__(self, __key: str, __value: type[ParallelBackendBase]) -> None:
+    def __setitem__(self, __key: str, __value: type[ParallelBackendBase], /) -> None:
         """Set self[__key] to __value.
-        If __key is not "nested-{key}",
-        dynamically create nested parallel backend class
-        and register it with key name "nested-{key}".
+
+        If __key is not "nested-{key}", dynamically create nested parallel
+        backend class and register it with key name "nested-{key}".
         """
-        if isinstance(__key, str) and re.match("nested-", __key) is None:
+        if isinstance(__key, str) and not __key.startswith("nested-"):
             super().__setitem__(f"nested-{__key}", _create_nested_backend(__value))
         return super().__setitem__(__key, __value)
 
@@ -89,7 +82,7 @@ def apply(*, set_default: bool = True, auto_register: bool = True) -> None:
     >>> nesting. Beyond, switch to sequential backend to avoid spawning too
     >>> many threads on the host.
     >>> """
-    >>> nesting_level = getattr(self, 'nesting_level', 0) + 1
+    >>> nesting_level = getattr(self, "nesting_level", 0) + 1
     >>> if nesting_level > 1:
     >>>     return SequentialBackend(nesting_level=nesting_level), None
     >>> else:
@@ -135,20 +128,21 @@ def apply(*, set_default: bool = True, auto_register: bool = True) -> None:
     >>> apply()
     >>> register_ray()
     >>> parallel_backend("nested-ray")
+
     '''
     # BACKENDS
     for name, backend in deepcopy(joblib.parallel.BACKENDS).items():
-        if re.match("nested-", name) is not None:
+        if name.startswith("nested-"):
             continue
         register_parallel_backend(f"nested-{name}", _create_nested_backend(backend))
 
     # change the type of BACKENDS from dict to _NestedBackendDict
     if auto_register:
-        joblib.parallel.BACKENDS = _NestedBackendDict(joblib.parallel.BACKENDS)
+        joblib.parallel.__dict__["BACKENDS"] = _NestedBackendDict(joblib.parallel.BACKENDS)
 
     # EXTERNAL_BACKENDS
     for name, register_backend in deepcopy(joblib.parallel.EXTERNAL_BACKENDS).items():
-        if re.match("nested-", name) is not None:
+        if name.startswith("nested-"):
             continue
         joblib.parallel.EXTERNAL_BACKENDS[f"nested-{name}"] = register_backend
 
