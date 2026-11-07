@@ -1,6 +1,5 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
-exclude: "CHANGELOG.md|.copier-answers.yml"
 default_stages: [pre-commit]
 
 ci:
@@ -34,6 +33,7 @@ repos:
     rev: v0.47.0
     hooks:
       - id: oxfmt
+        exclude: LICENSE
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.12
     hooks:

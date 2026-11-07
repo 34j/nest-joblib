@@ -27,6 +27,10 @@ dependencies = [
   "joblib>=1",
   "typing-extensions>=4",
 ]
+optional-dependencies.all = [
+  "dask[distributed]",
+  "ray",
+]
 urls."Bug Tracker" = "https://github.com/34j/nest-joblib/issues"
 urls.Changelog = "https://github.com/34j/nest-joblib/blob/main/CHANGELOG.md"
 urls.documentation = "https://nest-joblib.readthedocs.io"
@@ -42,10 +46,6 @@ dev = [
 ]
 docs = [
   "packaging-34j[docs]",
-]
-all = [
-  "dask[distributed]",
-  "ray",
 ]
 
 [tool.ruff]

@@ -10,11 +10,11 @@ from joblib.parallel import Parallel, get_active_backend, parallel_backend
 from nest_joblib import apply
 
 
-def _nested(level: int, max_level: int) -> list[str]:
-    backend, n_jobs = get_active_backend()
+def _nested(level: int, max_level: int, n_jobs: int = -1) -> list[str]:
+    backend, active_n_jobs = get_active_backend()
     if level < max_level:
-        parallel_result = Parallel(n_jobs=-1, verbose=1)(
-            delayed(_nested)(level + 1, max_level) for _ in range(n_jobs or 1)
+        parallel_result = Parallel(n_jobs=n_jobs, verbose=1)(
+            delayed(_nested)(level + 1, max_level, n_jobs) for _ in range(active_n_jobs or 1)
         )
         assert parallel_result is not None
         return [x for y in parallel_result for x in y] + [backend.__class__.__name__]
@@ -53,7 +53,7 @@ class TestMain(TestCase):
 
         register_ray()
         with parallel_backend("nested-ray"):
-            result = _nested(0, 3)
+            result = _nested(0, 3, n_jobs=1)
         for backend in result:
             self.assertEqual(backend, "NestedRayBackend")
 
