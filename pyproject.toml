@@ -25,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
   "joblib>=1",
-  "typing-extensions>=4",
+  "typing-extensions>=4.16.0",
 ]
 optional-dependencies.all = [
   "dask[distributed]",
